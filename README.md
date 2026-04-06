@@ -1,6 +1,6 @@
 # Continenter
 
-Continenter is a turn-based 2D artillery game built with Next.js, React, TypeScript, and Zustand.
+Continenter is a turn-based 2D artillery game built with React, TypeScript, Vite, and Zustand.
 
 You play a single character against 2 bots on destructible terrain. Each turn, you can move, aim, select a weapon, and fire. Last side standing wins.
 
@@ -57,12 +57,12 @@ pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:5173](http://localhost:5173).
 
 Type check:
 
 ```bash
-pnpm -s tsc --noEmit
+pnpm tsc -b
 ```
 
 ## Build
@@ -71,23 +71,19 @@ pnpm -s tsc --noEmit
 pnpm build
 ```
 
-The project is configured for static export (`next export` output in `out/`) and GitHub Pages hosting.
+Output goes to `dist/`. The project is a static SPA hosted on GitHub Pages.
 
 ## GitHub Pages Deployment
 
-A workflow is included at `.github/workflows/deploy-gh-pages.yml`.
-
-### What it does
-
-On push to `main` (or manual trigger), GitHub Actions:
+A workflow at `.github/workflows/deploy-gh-pages.yml` runs on push to `main` (or manual trigger):
 
 1. Installs dependencies with pnpm
-2. Builds the static site
-3. Publishes `out/` to the `gh-pages` branch
+2. Builds the static site with Vite
+3. Publishes `dist/` to the `gh-pages` branch
 
 ### Repository settings required
 
-1. In GitHub repo settings, enable **Actions** permissions to write contents (or keep default `GITHUB_TOKEN` write permissions enabled).
+1. Enable **Actions** write permissions for `GITHUB_TOKEN`.
 2. In **Pages** settings, set source to **Deploy from a branch** and select `gh-pages` / root.
 
 ## Project Structure
