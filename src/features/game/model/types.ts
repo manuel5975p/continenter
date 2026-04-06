@@ -26,7 +26,7 @@ export interface Weapon {
 export type WeaponAmmoByType = Record<WeaponType, number>;
 export type AmmoByEntityId = Record<string, WeaponAmmoByType>;
 
-// Character/Worm
+// Character
 export interface Character {
     id: string;
     x: number;

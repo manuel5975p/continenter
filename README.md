@@ -19,7 +19,7 @@ You play a single character against 2 bots on destructible terrain. Each turn, y
 - Physics simulation with gravity, friction, knockback, and slope-aware walking
 - Destructible terrain from explosive impacts
 - Weapon system with unique projectile behavior and ammo tracking per entity
-- Adjustable bot simulation speed (1x / 2.5x / 5x)
+- Adjustable bot simulation speed (1x / 5x / 10x)
 
 ## Weapons
 

@@ -56,7 +56,7 @@ export const useGameStore = create<GameStore>((set, get) => {
             changeWeapon: 0,
         },
         gameTime: 0,
-        gameSpeed: 2.5,
+        gameSpeed: 1,
 
         initializeGame: (screenWidth: number, screenHeight: number) => {
             // Create player

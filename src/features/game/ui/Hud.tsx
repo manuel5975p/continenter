@@ -22,7 +22,7 @@ const weaponIcons: Record<WeaponType, React.ReactNode> = {
   [WeaponType.SNIPER]: <Target className="w-6 h-6" />,
 };
 
-const speedOptions = [1, 2.5, 5] as const;
+const speedOptions = [1, 5, 10] as const;
 
 export function Hud() {
   const state = useGameStore((s) => s.state);
@@ -35,6 +35,7 @@ export function Hud() {
 
   const player = state.players[0];
   const playerAmmo = player ? state.ammoByEntityId[player.id] : undefined;
+  const playerArmor = player ? state.armorByEntityId[player.id] ?? 0 : 0;
   const currentWeaponType = WEAPON_TYPES[currentWeaponIndex] ?? WEAPON_TYPES[0];
   const currentWeapon = WEAPONS[currentWeaponType];
   const currentWeaponAmmo = playerAmmo?.[currentWeaponType] ?? currentWeapon.maxAmmo;
@@ -101,6 +102,19 @@ export function Hud() {
                   <div
                     className="bg-green-500 h-4 rounded transition-all"
                     style={{ width: `${(player.health / player.maxHealth) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs text-slate-400 mb-1">
+                  <span>Armor</span>
+                  <span>{Math.round(playerArmor)}</span>
+                </div>
+                <div className="w-full rounded bg-slate-700 h-3">
+                  <div
+                    className="h-3 rounded bg-sky-400 transition-all"
+                    style={{ width: `${Math.min(100, playerArmor)}%` }}
                   />
                 </div>
               </div>
@@ -177,6 +191,10 @@ export function Hud() {
                   className="bg-red-500 h-2 rounded transition-all"
                   style={{ width: `${Math.max(0, (bot.health / bot.maxHealth) * 100)}%` }}
                 />
+              </div>
+              <div className="mt-2 flex justify-between text-[11px] text-slate-400">
+                <span>Armor</span>
+                <span>{Math.round(state.armorByEntityId[bot.id] ?? 0)}</span>
               </div>
             </div>
           ))}

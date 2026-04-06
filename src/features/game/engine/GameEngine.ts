@@ -22,6 +22,8 @@ const POWERUP_SPAWN_INTERVAL_SECONDS = 4.5;
 const POWERUP_RADIUS = 8;
 const POWERUP_PICKUP_RADIUS = 30;
 const BOT_POWERUP_PURSUIT_RANGE = 200;
+const STARTING_ARMOR = 20;
+const HEALTH_REGEN_PER_SECOND = 0.125;
 const BOT_TURN_ID = "bots-turn";
 const BOT_EFFECTIVE_RANGE_BY_WEAPON: Record<WeaponType, number> = {
     [WeaponType.PISTOL]: 320,
@@ -107,8 +109,8 @@ export class GameEngine {
             ...Object.fromEntries(bots.map((bot) => [bot.id, this.createInitialAmmoLoadout()])),
         };
         this.state.armorByEntityId = {
-            [player.id]: 0,
-            ...Object.fromEntries(bots.map((bot) => [bot.id, 0])),
+            [player.id]: STARTING_ARMOR,
+            ...Object.fromEntries(bots.map((bot) => [bot.id, STARTING_ARMOR])),
         };
         this.weaponIndexByEntityId = {
             [player.id]: this.state.currentWeaponIndex,
@@ -244,6 +246,7 @@ export class GameEngine {
         this.updateExplosions(dt);
         this.updatePowerups(dt);
         this.checkPowerupPickups();
+        this.regenerateCharacterHealth(dt);
         this.syncTurnOrderWithLivingCharacters();
 
         if (this.state.isGameOver) {
@@ -426,6 +429,18 @@ export class GameEngine {
             if (character.velocity.y > 0) {
                 character.velocity.y = 0;
             }
+        }
+    }
+
+    private regenerateCharacterHealth(dt: number) {
+        if (dt <= 0) return;
+
+        for (const character of [...this.state.players, ...this.state.bots]) {
+            if (character.health <= 0 || character.health >= character.maxHealth) {
+                continue;
+            }
+
+            character.health = Math.min(character.maxHealth, character.health + HEALTH_REGEN_PER_SECOND * dt);
         }
     }
 
@@ -660,7 +675,7 @@ export class GameEngine {
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
                 if (distance < projectile.radius + Math.max(target.width, target.height) / 2) {
-                    target.health -= projectile.damage;
+                    this.applyDamage(target, projectile.damage);
                     projectile.meta = {
                         ...projectile.meta,
                         [`hit_${target.id}`]: true,
@@ -708,7 +723,7 @@ export class GameEngine {
 
             if (distance < radius) {
                 const falloff = 1 - distance / radius;
-                character.health -= damage * falloff;
+                this.applyDamage(character, damage * falloff);
 
                 if (distance > 0) {
                     character.velocity.x = (dx / distance) * 300 * falloff;
@@ -748,6 +763,22 @@ export class GameEngine {
         });
     }
 
+    private applyDamage(character: Character, damage: number) {
+        if (damage <= 0) {
+            return;
+        }
+
+        const currentArmor = this.state.armorByEntityId[character.id] ?? 0;
+        const absorbedDamage = Math.min(currentArmor, damage);
+        const remainingDamage = damage - absorbedDamage;
+
+        this.state.armorByEntityId[character.id] = Math.max(0, currentArmor - absorbedDamage);
+
+        if (remainingDamage > 0) {
+            character.health = Math.max(0, character.health - remainingDamage);
+        }
+    }
+
     private getCharacterById(id: string): Character | undefined {
         return [...this.state.players, ...this.state.bots].find((character) => character.id === id);
     }
@@ -766,6 +797,12 @@ export class GameEngine {
         for (const entityId of Object.keys(this.weaponIndexByEntityId)) {
             if (!livingIds.has(entityId)) {
                 delete this.weaponIndexByEntityId[entityId];
+            }
+        }
+
+        for (const entityId of Object.keys(this.state.armorByEntityId)) {
+            if (!livingIds.has(entityId)) {
+                delete this.state.armorByEntityId[entityId];
             }
         }
 
