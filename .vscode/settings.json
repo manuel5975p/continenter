@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^pnpm -s tsc --noEmit$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
