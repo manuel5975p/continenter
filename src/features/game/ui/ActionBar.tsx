@@ -61,7 +61,7 @@ export function ActionBar() {
       {isPlayerTurn && !state.isGameOver && !state.hasFiredThisTurn && (
         <button
           onClick={handleSkipShot}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-all"
+          className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 transition-all cursor-pointer"
         >
           <SkipForward className="w-4 h-4" />
           <span>Skip Shot</span>
@@ -72,7 +72,7 @@ export function ActionBar() {
       {state.isGameOver && (
         <button
           onClick={handleRestart}
-          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all"
+          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-all cursor-pointer"
         >
           <RotateCcw className="w-4 h-4" />
           <span>Restart</span>

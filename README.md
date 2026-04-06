@@ -27,12 +27,12 @@ Each unit starts with a full loadout.
 
 | Weapon | Damage | Blast Radius | Ammo | Notes |
 | --- | ---: | ---: | ---: | --- |
-| Pistol | 20 | 1 | 6 | Fast, basic ballistic shot |
+| Pistol | 10 | 1 | 6 | Fast, basic ballistic shot |
 | Shotgun | 50 total | 5 | 4 | 6-pellet spread, split damage |
 | Grenade | 60 | 80 | 3 | Arcing projectile with stronger gravity |
 | Bazooka | 80 | 120 | 2 | Heavy explosive impact |
 | Flamethrower | 40 total | 60 | 1 | Multi-particle short-lifespan flame burst |
-| Sniper Rifle | 100 | 0 | 1 | Very high-speed precision shot with piercing |
+| Sniper Rifle | 50 | 0 | 1 | Very high-speed precision shot with piercing |
 
 ## Controls
 

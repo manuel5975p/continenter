@@ -43,6 +43,9 @@ jobs:
       - name: Build static site
         run: pnpm build
 
+      - name: Copy public assets to output
+        run: cp -r public/. out/
+
       - name: Deploy to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:

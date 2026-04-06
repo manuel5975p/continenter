@@ -74,7 +74,7 @@ export function Hud() {
                         key={speed}
                         type="button"
                         onClick={() => setGameSpeed(speed)}
-                        className={`rounded px-2 py-1 text-xs font-semibold transition-all ${
+                        className={`rounded px-2 py-1 text-xs font-semibold transition-all cursor-pointer ${
                           isSelected
                             ? "bg-blue-600 text-white"
                             : "bg-slate-700 text-slate-200 hover:bg-slate-600"
@@ -128,7 +128,7 @@ export function Hud() {
               <button
                 type="button"
                 onClick={() => setWeaponMenuOpen(true)}
-                className="w-full rounded bg-slate-700 px-3 py-2 text-xs font-semibold text-slate-100 hover:bg-slate-600"
+                className="w-full rounded bg-slate-700 px-3 py-2 text-xs font-semibold text-slate-100 hover:bg-slate-600 cursor-pointer"
               >
                 Select Weapon
               </button>
@@ -203,7 +203,7 @@ export function Hud() {
             <button
               type="button"
               onClick={() => setWeaponMenuOpen(false)}
-              className="rounded bg-slate-700 px-2 py-1 text-xs text-slate-200 hover:bg-slate-600"
+              className="rounded bg-slate-700 px-2 py-1 text-xs text-slate-200 hover:bg-slate-600 cursor-pointer"
             >
               Close
             </button>
@@ -223,7 +223,7 @@ export function Hud() {
                     selectWeapon(idx);
                     setWeaponMenuOpen(false);
                   }}
-                  className={`flex w-full items-center justify-between rounded border px-3 py-2 text-left transition-all ${
+                  className={`flex w-full items-center justify-between rounded border px-3 py-2 text-left transition-all cursor-pointer ${
                     isSelected
                       ? "border-blue-400 bg-blue-600/20 text-white"
                       : "border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700"
