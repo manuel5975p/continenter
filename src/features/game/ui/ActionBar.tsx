@@ -1,5 +1,3 @@
-"use client";
-
 import { useGameStore } from "../store/useGameStore";
 import { WEAPONS, WEAPON_TYPES } from "../model/weapons";
 import { WeaponType } from "../model/types";

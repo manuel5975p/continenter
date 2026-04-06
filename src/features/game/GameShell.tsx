@@ -1,6 +1,4 @@
-"use client";
-
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ActionBar } from "./ui/ActionBar";
 import { Hud } from "./ui/Hud";
 import { MapCanvas } from "./ui/MapCanvas";
@@ -8,20 +6,27 @@ import { useGameStore } from "./store/useGameStore";
 
 export function GameShell() {
   const initializeGame = useGameStore((s) => s.initializeGame);
-  const initialized = useRef(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
+    console.log("[GameShell] useEffect fired");
 
-    const container = document.querySelector("main");
-    if (container) {
-      const mapArea = container.querySelector('[class*="lg:grid-cols"]');
-      if (mapArea) {
-        const screenWidth = mapArea.clientWidth;
-        const screenHeight = mapArea.clientHeight;
-        initializeGame(screenWidth, screenHeight);
-      }
+    // Use the actual window/layout dimensions
+    const sidebarWidth = window.innerWidth >= 1024 ? 320 : 0;
+    const padding = 24; // p-3 = 12px on each side
+    const gap = 12; // gap-3
+    const actionBarHeight = 60;
+
+    const screenWidth = window.innerWidth - sidebarWidth - padding - (sidebarWidth > 0 ? gap : 0);
+    const screenHeight = window.innerHeight - padding - actionBarHeight;
+
+    console.log("[GameShell] window:", window.innerWidth, "x", window.innerHeight);
+    console.log("[GameShell] computed canvas:", screenWidth, "x", screenHeight);
+
+    if (screenWidth > 0 && screenHeight > 0) {
+      initializeGame(Math.floor(screenWidth), Math.floor(screenHeight));
+      setReady(true);
+      console.log("[GameShell] initializeGame called");
     }
   }, [initializeGame]);
 
@@ -34,6 +39,11 @@ export function GameShell() {
       <div className="px-3 pb-3">
         <ActionBar />
       </div>
+      {!ready && (
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-950 text-white text-xl">
+          Loading...
+        </div>
+      )}
     </main>
   );
 }

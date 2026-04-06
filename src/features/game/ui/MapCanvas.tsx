@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useGameStore } from "../store/useGameStore";
 import { getWeaponBehavior, WEAPON_TYPES } from "../model/weapons";
@@ -171,9 +169,23 @@ export function MapCanvas() {
   const { state, updateGame, playerInput, setInput } = useGameStore();
 
   // Render function
+  const renderCountRef = useRef(0);
   const render = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !state.screenWidth) return;
+    if (!canvas || !state.screenWidth) {
+      if (renderCountRef.current < 5) {
+        console.log("[MapCanvas] render skipped: canvas=", !!canvas, "screenWidth=", state.screenWidth, "screenHeight=", state.screenHeight);
+        renderCountRef.current++;
+      }
+      return;
+    }
+
+    if (renderCountRef.current < 10) {
+      console.log("[MapCanvas] rendering frame, canvas size:", canvas.width, "x", canvas.height,
+        "players:", state.players.length, "bots:", state.bots.length,
+        "terrain length:", state.terrain.length, "terrain non-zero:", state.terrain.slice(0, 1000).filter(v => v > 0).length);
+      renderCountRef.current++;
+    }
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;

@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { useGameStore } from "../store/useGameStore";
 import { WEAPONS, WEAPON_TYPES } from "../model/weapons";
