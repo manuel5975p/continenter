@@ -225,16 +225,17 @@ export function MapCanvas() {
       );
     }
 
-    // Draw player
     const player = state.players[0];
-    if (player) {
-      ctx.fillStyle = "#3b82f6";
-      ctx.fillRect(player.x, player.y, player.width, player.height);
+
+    // Draw player team
+    for (const teammate of state.players) {
+      ctx.fillStyle = teammate.isBot ? "#60a5fa" : "#3b82f6";
+      ctx.fillRect(teammate.x, teammate.y, teammate.width, teammate.height);
       // Health bar
       ctx.fillStyle = "#ef4444";
-      ctx.fillRect(player.x, player.y - 10, player.width, 3);
+      ctx.fillRect(teammate.x, teammate.y - 10, teammate.width, 3);
       ctx.fillStyle = "#22c55e";
-      ctx.fillRect(player.x, player.y - 10, (player.health / player.maxHealth) * player.width, 3);
+      ctx.fillRect(teammate.x, teammate.y - 10, (teammate.health / teammate.maxHealth) * teammate.width, 3);
     }
 
     // Draw bots
@@ -324,7 +325,7 @@ export function MapCanvas() {
 
     // Draw turn info
     if (!state.isGameOver) {
-      const turnLabel = state.currentTurnEntityId === player?.id ? "PLAYER TURN" : "BOT TURN";
+      const turnLabel = state.currentTurnEntityId === player?.id ? "PLAYER TEAM TURN" : "ENEMY TEAM TURN";
       ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
       ctx.fillRect(12, 12, 180, 44);
       ctx.fillStyle = "#f8fafc";

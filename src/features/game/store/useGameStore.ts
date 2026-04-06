@@ -20,6 +20,34 @@ interface GameStore {
 
 export const useGameStore = create<GameStore>((set, get) => {
     let lastTime = Date.now();
+    const playerTeamSize = 2;
+    const enemyTeamSize = 2;
+
+    const createSpawnXs = (
+        count: number,
+        screenWidth: number,
+        minPercent: number,
+        maxPercent: number
+    ) => {
+        const minX = screenWidth * minPercent;
+        const maxX = screenWidth * maxPercent;
+        const minSpacing = 28;
+        const spawns: number[] = [];
+
+        for (let i = 0; i < count; i++) {
+            let nextX = minX + Math.random() * Math.max(1, maxX - minX);
+            let attempts = 0;
+
+            while (attempts < 16 && spawns.some((x) => Math.abs(x - nextX) < minSpacing)) {
+                nextX = minX + Math.random() * Math.max(1, maxX - minX);
+                attempts += 1;
+            }
+
+            spawns.push(nextX);
+        }
+
+        return spawns.sort((a, b) => a - b);
+    };
 
     return {
         state: {
@@ -59,28 +87,46 @@ export const useGameStore = create<GameStore>((set, get) => {
         gameSpeed: 1,
 
         initializeGame: (screenWidth: number, screenHeight: number) => {
-            // Create player
-            const player: Character = {
-                id: "player-1",
-                x: 100,
-                y: screenHeight - 150,
-                width: 20,
-                height: 30,
-                health: 100,
-                maxHealth: 100,
-                velocity: { x: 0, y: 0 },
-                isJumping: false,
-                isBot: false,
-            };
+            const playerTeamCount = Math.max(1, playerTeamSize);
+            const enemyTeamCount = Math.max(1, enemyTeamSize);
+            const playerSpawnXs = createSpawnXs(playerTeamCount, screenWidth, 0.2, 0.4);
+            const enemySpawnXs = createSpawnXs(enemyTeamCount, screenWidth, 0.6, 0.8);
 
-            // Create bots
+            const players: Character[] = [
+                {
+                    id: "player-1",
+                    x: playerSpawnXs[0] ?? screenWidth * 0.25,
+                    y: screenHeight - 150,
+                    width: 20,
+                    height: 30,
+                    health: 100,
+                    maxHealth: 100,
+                    velocity: { x: 0, y: 0 },
+                    isJumping: false,
+                    isBot: false,
+                },
+            ];
+
+            for (let i = 1; i < playerTeamCount; i++) {
+                players.push({
+                    id: `ally-bot-${i}`,
+                    x: playerSpawnXs[i] ?? screenWidth * 0.3,
+                    y: screenHeight - 150,
+                    width: 20,
+                    height: 30,
+                    health: 100,
+                    maxHealth: 100,
+                    velocity: { x: 0, y: 0 },
+                    isJumping: false,
+                    isBot: true,
+                });
+            }
+
             const bots: Character[] = [];
-            const numBots = 2;
-            for (let i = 0; i < numBots; i++) {
-                const botX = screenWidth * ((i + 1) / (numBots + 1));
+            for (let i = 0; i < enemyTeamCount; i++) {
                 bots.push({
-                    id: `bot-${i}`,
-                    x: botX,
+                    id: `enemy-bot-${i}`,
+                    x: enemySpawnXs[i] ?? screenWidth * 0.7,
                     y: screenHeight - 150,
                     width: 20,
                     height: 30,
@@ -93,7 +139,7 @@ export const useGameStore = create<GameStore>((set, get) => {
             }
 
             const engine = new GameEngine(screenWidth, screenHeight);
-            engine.initializeGame(player, bots);
+            engine.initializeGame(players, bots);
 
             set({
                 engine,

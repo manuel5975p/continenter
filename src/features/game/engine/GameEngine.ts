@@ -101,39 +101,45 @@ export class GameEngine {
         }
     }
 
-    public initializeGame(player: Character, bots: Character[]) {
-        this.state.players = [player];
+    public initializeGame(players: Character[], bots: Character[]) {
+        const playerTeam = players.length > 0 ? players : [];
+        if (playerTeam.length === 0) {
+            return;
+        }
+
+        this.state.players = playerTeam;
         this.state.bots = bots;
+        const humanPlayer = playerTeam[0];
+        const allCharacters = [...playerTeam, ...bots];
         this.state.ammoByEntityId = {
-            [player.id]: this.createInitialAmmoLoadout(),
-            ...Object.fromEntries(bots.map((bot) => [bot.id, this.createInitialAmmoLoadout()])),
+            ...Object.fromEntries(allCharacters.map((character) => [character.id, this.createInitialAmmoLoadout()])),
         };
         this.state.armorByEntityId = {
-            [player.id]: STARTING_ARMOR,
-            ...Object.fromEntries(bots.map((bot) => [bot.id, STARTING_ARMOR])),
+            ...Object.fromEntries(allCharacters.map((character) => [character.id, STARTING_ARMOR])),
         };
         this.weaponIndexByEntityId = {
-            [player.id]: this.state.currentWeaponIndex,
-            ...Object.fromEntries(bots.map((bot) => [bot.id, 0])),
+            ...Object.fromEntries(
+                allCharacters.map((character) => [
+                    character.id,
+                    character.id === humanPlayer.id ? this.state.currentWeaponIndex : 0,
+                ])
+            ),
         };
         this.remainingWalkDistanceByEntityId = {
-            [player.id]: MAX_WALK_DISTANCE_PER_TURN,
-            ...Object.fromEntries(bots.map((bot) => [bot.id, MAX_WALK_DISTANCE_PER_TURN])),
+            ...Object.fromEntries(allCharacters.map((character) => [character.id, MAX_WALK_DISTANCE_PER_TURN])),
         };
         this.state.remainingWalkDistanceByEntityId = this.remainingWalkDistanceByEntityId;
 
-        this.placeCharacterOnGround(player);
-        for (const bot of bots) {
-            this.placeCharacterOnGround(bot);
+        for (const character of allCharacters) {
+            this.placeCharacterOnGround(character);
         }
 
         this.walkRangeOriginXByEntityId = {
-            [player.id]: player.x,
-            ...Object.fromEntries(bots.map((bot) => [bot.id, bot.x])),
+            ...Object.fromEntries(allCharacters.map((character) => [character.id, character.x])),
         };
         this.state.walkRangeOriginXByEntityId = this.walkRangeOriginXByEntityId;
 
-        this.state.turnOrder = bots.length > 0 ? [player.id, BOT_TURN_ID] : [player.id];
+        this.state.turnOrder = bots.length > 0 ? [humanPlayer.id, BOT_TURN_ID] : [humanPlayer.id];
         this.state.currentTurnIndex = 0;
         this.state.currentTurnEntityId = this.state.turnOrder[0] ?? "";
         this.state.turnTimeLeft = TURN_DURATION_SECONDS;
@@ -229,6 +235,8 @@ export class GameEngine {
                 },
                 dt
             );
+
+            this.updateAlliedBotsDuringPlayerTurn(dt);
         }
 
         const allCharacters = [...this.state.players, ...this.state.bots];
@@ -280,15 +288,14 @@ export class GameEngine {
     }
 
     private updateBotTurn(dt: number) {
-        const player = this.state.players[0];
-        if (!player) return;
+        if (this.state.players.length === 0) return;
 
         // Decrement shared action delay once per frame
         this.botActionDelayLeft -= dt;
 
         // Run each bot's logic simultaneously
         for (const bot of this.state.bots) {
-            this.updateSingleBot(bot, dt, player);
+            this.updateSingleBot(bot, dt, this.state.players);
         }
 
         // End the group turn once every living bot has fired
@@ -298,7 +305,29 @@ export class GameEngine {
         }
     }
 
-    private updateSingleBot(bot: Character, dt: number, player: Character) {
+    private updateAlliedBotsDuringPlayerTurn(dt: number) {
+        if (this.state.bots.length === 0) {
+            return;
+        }
+
+        const alliedBots = this.state.players.filter((character) => character.isBot);
+        if (alliedBots.length === 0) {
+            return;
+        }
+
+        this.botActionDelayLeft -= dt;
+
+        for (const alliedBot of alliedBots) {
+            this.updateSingleBot(alliedBot, dt, this.state.bots);
+        }
+    }
+
+    private updateSingleBot(bot: Character, dt: number, opponents: Character[]) {
+        const target = this.getNearestLivingTarget(bot, opponents);
+        if (!target) {
+            return;
+        }
+
         const originX = bot.x + bot.width / 2;
         const originY = bot.y + bot.height / 2;
 
@@ -319,9 +348,9 @@ export class GameEngine {
             return;
         }
 
-        // Default behavior: pursue player
-        const targetX = player.x + player.width / 2;
-        const targetY = player.y + player.height / 2;
+        // Default behavior: pursue nearest target
+        const targetX = target.x + target.width / 2;
+        const targetY = target.y + target.height / 2;
 
         const dx = targetX - originX;
         const dy = targetY - originY;
@@ -334,8 +363,8 @@ export class GameEngine {
             this.updateCharacterMovement(
                 bot,
                 {
-                    moveLeft: player.x < bot.x,
-                    moveRight: player.x > bot.x,
+                    moveLeft: target.x < bot.x,
+                    moveRight: target.x > bot.x,
                 },
                 dt,
                 0.35
@@ -358,6 +387,32 @@ export class GameEngine {
         if (didFire) {
             this.botsFiredThisTurn.add(bot.id);
         }
+    }
+
+    private getNearestLivingTarget(source: Character, candidates: Character[]): Character | undefined {
+        let nearestTarget: Character | undefined;
+        let nearestDistanceSq = Number.POSITIVE_INFINITY;
+        const sourceCenterX = source.x + source.width / 2;
+        const sourceCenterY = source.y + source.height / 2;
+
+        for (const candidate of candidates) {
+            if (candidate.health <= 0) {
+                continue;
+            }
+
+            const candidateCenterX = candidate.x + candidate.width / 2;
+            const candidateCenterY = candidate.y + candidate.height / 2;
+            const dx = candidateCenterX - sourceCenterX;
+            const dy = candidateCenterY - sourceCenterY;
+            const distanceSq = dx * dx + dy * dy;
+
+            if (distanceSq < nearestDistanceSq) {
+                nearestDistanceSq = distanceSq;
+                nearestTarget = candidate;
+            }
+        }
+
+        return nearestTarget;
     }
 
     private rollChancePerSecond(chancePerSecond: number, dt: number): boolean {
@@ -825,13 +880,13 @@ export class GameEngine {
 
         if (this.state.players.length === 0) {
             this.state.isGameOver = true;
-            this.state.winner = "Bot";
+            this.state.winner = "Enemy Team";
             return;
         }
 
         if (this.state.bots.length === 0) {
             this.state.isGameOver = true;
-            this.state.winner = "Player";
+            this.state.winner = "Player Team";
             return;
         }
 
@@ -895,6 +950,11 @@ export class GameEngine {
         const currentCharacter = this.getCharacterById(currentEntityId);
         if (currentCharacter) {
             this.walkRangeOriginXByEntityId[currentEntityId] = currentCharacter.x;
+        }
+
+        for (const allyBot of this.state.players.filter((character) => character.isBot)) {
+            this.remainingWalkDistanceByEntityId[allyBot.id] = MAX_WALK_DISTANCE_PER_TURN;
+            this.walkRangeOriginXByEntityId[allyBot.id] = allyBot.x;
         }
     }
 

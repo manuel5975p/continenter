@@ -40,9 +40,7 @@ export function Hud() {
   const currentWeapon = WEAPONS[currentWeaponType];
   const currentWeaponAmmo = playerAmmo?.[currentWeaponType] ?? currentWeapon.maxAmmo;
   const isPlayerTurn = state.currentTurnEntityId === player?.id;
-  const currentTurnLabel = isPlayerTurn
-    ? "Player"
-    : `Bot ${Math.max(1, state.bots.findIndex((bot) => bot.id === state.currentTurnEntityId) + 1)}`;
+  const currentTurnLabel = isPlayerTurn ? "Player Team" : "Enemy Team";
 
   return (
     <>
@@ -176,7 +174,7 @@ export function Hud() {
 
       {/* Bots Stats */}
       <div className="space-y-2">
-        <h3 className="text-sm font-semibold text-slate-300">ENEMIES</h3>
+        <h3 className="text-sm font-semibold text-slate-300">ENEMY TEAM</h3>
         <div className="space-y-2 overflow-y-auto flex-1">
           {state.bots.map((bot, idx) => (
             <div key={bot.id} className="bg-slate-800 rounded p-2 text-xs">
@@ -198,17 +196,6 @@ export function Hud() {
               </div>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Controls Info */}
-      <div className="mt-auto pt-4 border-t border-slate-700">
-        <div className="text-xs text-slate-400 space-y-1">
-          <div><span className="text-slate-300">A/D:</span> Move</div>
-          <div><span className="text-slate-300">Mouse:</span> Aim</div>
-          <div><span className="text-slate-300">Click:</span> Shoot</div>
-          <div><span className="text-slate-300">Scroll:</span> Power</div>
-          <div><span className="text-slate-300">W/S:</span> Weapon</div>
         </div>
       </div>
     </div>
